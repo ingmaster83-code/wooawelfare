@@ -21,6 +21,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).parent.parent
 RAW = ROOT / "_rawdata" / "welfare_raw.json"
+FAMILY_RAW = ROOT / "_rawdata" / "family_raw.json"
 GEO_CACHE = ROOT / "_rawdata" / "welfare_geo_cache.json"
 OUT = ROOT / "_rawdata" / "welfare.json"
 SEARCH_INDEX_OUT = ROOT / "search_index.json"
@@ -165,6 +166,38 @@ def main():
         })
 
     GEO_CACHE.write_text(json.dumps(geo_cache, ensure_ascii=False), encoding="utf-8")
+
+    # 가족센터(건강가정지원센터) — 위경도·시도/시군구를 API가 직접 줘서 지오코딩·주소파싱 불필요
+    family_added = 0
+    if FAMILY_RAW.exists():
+        family_raw = json.loads(FAMILY_RAW.read_text(encoding="utf-8"))
+        for d in family_raw:
+            name = (d.get("cnterNm") or "").strip()
+            sido_nm = (d.get("ctpvNm") or "").strip()
+            sggu_nm = (d.get("sggNm") or "").strip()
+            if not name or not sido_nm or not sggu_nm:
+                skipped += 1
+                continue
+            slug = make_slug(name, str(d.get("roadNmAddr", "")))
+            seen_slugs[slug] += 1
+            if seen_slugs[slug] > 1:
+                slug = f"{slug}-{seen_slugs[slug]}"
+            items.append({
+                "welfareName": name,
+                "category": "가족센터",
+                "addr": (d.get("roadNmAddr") or "").strip(),
+                "tel": (d.get("rprsTelno") or "").strip(),
+                "fax": (d.get("fxno") or "").strip(),
+                "corp": (d.get("operMbyCn") or "").strip(),
+                "estbDate": "",
+                "lat": str(d.get("lat") or ""),
+                "lng": str(d.get("lot") or ""),
+                "sido_nm": sido_nm,
+                "sggu_nm": sggu_nm,
+                "slug": slug,
+            })
+            family_added += 1
+        print(f"\n가족센터 {family_added}개 추가")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(items, ensure_ascii=False), encoding="utf-8")

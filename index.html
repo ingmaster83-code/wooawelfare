@@ -1,7 +1,7 @@
 ---
 layout: default
 title: 전국 복지시설 찾기
-description: 전국 사회복지관·장애인복지관·지역자활센터·노인일자리지원기관을 지역별로 검색. 위치, 전화번호를 확인하세요.
+description: 전국 사회복지관·장애인복지관·지역자활센터·노인일자리지원기관·가족센터를 지역별로 검색. 위치, 전화번호를 확인하세요.
 ---
 
 <!-- 히어로 & 검색 -->
@@ -31,7 +31,7 @@ description: 전국 사회복지관·장애인복지관·지역자활센터·노
   <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:14px;padding:20px 24px;">
     <p style="color:#14532D;line-height:1.8;font-size:.92rem;">
       💡 <strong>동네 복지시설, 어디서 어떤 도움을 받을 수 있는지 궁금하셨죠?</strong>
-      전국 <strong id="totalCount">-</strong>개 사회복지관·장애인복지관·지역자활센터·노인일자리지원기관을 확인하세요.
+      전국 <strong id="totalCount">-</strong>개 사회복지관·장애인복지관·지역자활센터·노인일자리지원기관·가족센터를 확인하세요.
     </p>
   </div>
 </div>
@@ -68,7 +68,7 @@ description: 전국 사회복지관·장애인복지관·지역자활센터·노
 <!-- 종류별 찾기 -->
 <div class="section">
   <h2 class="section-title">🏢 종류별 복지시설 찾기</h2>
-  <div class="type-grid" style="grid-template-columns:repeat(4,1fr);">
+  <div class="type-grid" style="grid-template-columns:repeat(5,1fr);">
     <a href="/search/?q=사회복지관" class="type-card">
       <span class="type-icon">🏢</span>
       <div class="type-name">사회복지관</div>
@@ -84,6 +84,10 @@ description: 전국 사회복지관·장애인복지관·지역자활센터·노
     <a href="/search/?q=노인일자리" class="type-card">
       <span class="type-icon">👴</span>
       <div class="type-name">노인일자리지원기관</div>
+    </a>
+    <a href="/search/?q=가족센터" class="type-card">
+      <span class="type-icon">👪</span>
+      <div class="type-name">가족센터</div>
     </a>
   </div>
 </div>
