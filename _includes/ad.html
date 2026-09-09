@@ -1,0 +1,7 @@
+{% assign ad_slot = include.slot | default: "7080296704" %}
+{% if jekyll.environment == "production" %}
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6464921081676309" data-ad-slot="{{ ad_slot }}" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+{% else %}
+<div class="ad-placeholder">📢 광고 영역 ({{ include.label | default: "배포 시 AdSense로 교체" }})</div>
+{% endif %}

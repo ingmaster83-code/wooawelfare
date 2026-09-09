@@ -1,0 +1,11 @@
+_site/
+.jekyll-cache/
+.sass-cache/
+.bundle/
+vendor/
+Gemfile.lock
+scripts/__pycache__/
+*.log
+
+# 원본 다운로드 원본(재생성 가능, process_data.py의 중간 입력일 뿐)
+_rawdata/welfare_raw.json

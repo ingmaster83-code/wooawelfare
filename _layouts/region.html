@@ -1,0 +1,116 @@
+---
+layout: default
+---
+
+<div class="page-with-sidebar">
+<div class="region-page">
+
+  <nav class="breadcrumb" aria-label="위치">
+    <a href="/">홈</a>
+    <span>›</span>
+    <span>{{ page.do_name }}</span>
+  </nav>
+
+  <div class="region-page-header">
+    <h1>🏢 {{ page.title_h1 }}</h1>
+    <p>{{ page.subtitle }}</p>
+  </div>
+
+  <!-- 광고 -->
+  <div class="ad-slot">
+    {% include ad.html %}
+  </div>
+
+  <!-- 종류 필터 -->
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all" onclick="filterWelfare('all', this)">전체</button>
+    <button class="filter-btn" data-filter="사회복지관" onclick="filterWelfare('사회복지관', this)">🏢 사회복지관</button>
+    <button class="filter-btn" data-filter="장애인복지관" onclick="filterWelfare('장애인복지관', this)">♿ 장애인복지관</button>
+    <button class="filter-btn" data-filter="지역자활센터" onclick="filterWelfare('지역자활센터', this)">💼 지역자활센터</button>
+    <button class="filter-btn" data-filter="노인일자리지원기관" onclick="filterWelfare('노인일자리지원기관', this)">👴 노인일자리지원기관</button>
+  </div>
+
+  <div class="search-wrap" style="margin:12px 0 16px;">
+    <input type="text" id="filterInput" class="search-input" placeholder="시설명 또는 시군구로 좁혀보기..." autocomplete="off">
+  </div>
+
+  <p id="welfareCount" style="font-size:.87rem;color:#6B7280;margin-bottom:16px;"></p>
+
+  <div class="camp-grid" id="welfareGrid">
+    <p style="color:#6B7280;">로딩 중...</p>
+  </div>
+
+  <!-- 안내 텍스트 -->
+  <div style="margin-top:40px;background:#F9FAFB;border-radius:14px;padding:24px 28px;">
+    <h2 style="font-size:1.05rem;font-weight:700;margin-bottom:12px;">{{ page.do_name }} 복지시설 이용 안내</h2>
+    <p style="color:#374151;line-height:1.8;font-size:.9375rem;">
+      {{ page.do_name }}의 사회복지관·장애인복지관·지역자활센터·노인일자리지원기관을 검색할 수 있습니다.
+      모든 정보는 보건복지부·한국사회보장정보원 사회복지시설정보서비스를 기반으로 합니다.
+    </p>
+  </div>
+
+</div>
+<aside class="tool-sidebar"></aside>
+</div>
+
+<script>
+const DO_NAME = {{ page.do_name | jsonify }};
+const RENDER_CAP = 200;
+let allItems = [];
+let currentCategory = 'all';
+
+(async () => {
+  const resp = await fetch('/search_index.json');
+  const all  = await resp.json();
+  allItems = all.filter(f => f.doShort === DO_NAME);
+  document.getElementById('welfareCount').textContent = `총 ${allItems.length.toLocaleString()}곳`;
+  renderWelfare(allItems);
+})();
+
+function welfareCard(f) {
+  return `<a class="camp-card" href="/welfare/${f.slug}/">
+    <div class="camp-card-img-placeholder">🏢</div>
+    <div class="camp-card-body">
+      <div class="camp-card-name">${f.n}</div>
+      <div class="camp-card-loc">📍 ${f.sigungu || ''}</div>
+      <div class="camp-card-tags"><span class="tag tag-type">${f.cat||''}</span></div>
+    </div>
+  </a>`;
+}
+
+function renderWelfare(list) {
+  const grid = document.getElementById('welfareGrid');
+  if (list.length === 0) {
+    grid.innerHTML = '<p style="color:#6B7280;grid-column:1/-1;">해당 조건의 복지시설이 없습니다.</p>';
+    return;
+  }
+  const shown = list.slice(0, RENDER_CAP);
+  grid.innerHTML = shown.map(welfareCard).join('');
+  if (list.length > RENDER_CAP) {
+    grid.innerHTML += `<p style="grid-column:1/-1;color:#6B7280;font-size:.85rem;text-align:center;padding:12px;">
+      ${list.length - RENDER_CAP}곳 더 있습니다. 검색창에 시군구명이나 시설명을 입력해 좁혀보세요.</p>`;
+  }
+}
+
+function applyFilters() {
+  const q = document.getElementById('filterInput').value.trim();
+  let filtered = allItems;
+  if (currentCategory !== 'all') {
+    filtered = filtered.filter(f => f.cat === currentCategory);
+  }
+  if (q) {
+    filtered = filtered.filter(f => f.n.includes(q) || (f.sigungu||'').includes(q));
+  }
+  document.getElementById('welfareCount').textContent = `총 ${filtered.length.toLocaleString()}곳`;
+  renderWelfare(filtered);
+}
+
+function filterWelfare(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCategory = cat;
+  applyFilters();
+}
+
+document.getElementById('filterInput').addEventListener('input', applyFilters);
+</script>

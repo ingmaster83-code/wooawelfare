@@ -1,0 +1,70 @@
+---
+layout: default
+title: 복지시설 검색
+description: 지역명, 시설명, 종류로 전국 복지시설을 검색하세요.
+---
+
+<div class="section">
+  <nav class="breadcrumb"><a href="/">홈</a> <span>›</span> <span>복지시설 검색</span></nav>
+  <h1 style="font-size:1.6rem;font-weight:800;margin:20px 0 24px;">🔍 복지시설 검색</h1>
+
+  <div class="search-wrap" style="max-width:100%;margin-bottom:24px;">
+    <input type="text" id="searchInput" class="search-input"
+           placeholder="지역명, 시설명, 종류 검색..."
+           autocomplete="off" style="border:1px solid #E5E7EB;">
+    <button class="search-btn" onclick="doSearch()">검색</button>
+  </div>
+
+  <p id="searchStatus" style="color:#6B7280;font-size:.87rem;margin-bottom:16px;">검색어를 입력하세요.</p>
+  <div class="camp-grid" id="campGrid"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+<script>
+let fuse = null;
+let allItems = [];
+
+(async () => {
+  const resp = await fetch('/search_index.json');
+  allItems = await resp.json();
+  fuse = new Fuse(allItems, {
+    keys: ['n', 'cat', 'doShort', 'sigungu'],
+    threshold: 0.3,
+    minMatchCharLength: 1,
+  });
+  document.getElementById('searchStatus').textContent = `총 ${allItems.length.toLocaleString()}개 복지시설 검색 가능`;
+
+  const q = new URLSearchParams(location.search).get('q');
+  if (q) {
+    document.getElementById('searchInput').value = q;
+    doSearch();
+  }
+})();
+
+function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q || !fuse) return;
+  const results = fuse.search(q).slice(0, 60);
+  document.getElementById('searchStatus').textContent = `"${q}" 검색 결과: ${results.length}개`;
+  const grid = document.getElementById('campGrid');
+  if (results.length === 0) {
+    grid.innerHTML = '<p style="grid-column:1/-1;color:#6B7280;">검색 결과가 없습니다.</p>';
+    return;
+  }
+  grid.innerHTML = results.map(r => {
+    const f = r.item;
+    return `<a class="camp-card" href="/welfare/${f.slug}/">
+      <div class="camp-card-img-placeholder">🏢</div>
+      <div class="camp-card-body">
+        <div class="camp-card-name">${f.n}</div>
+        <div class="camp-card-loc">📍 ${f.doShort || ''} ${f.sigungu || ''}</div>
+        <div class="camp-card-tags"><span class="tag tag-type">${f.cat||''}</span></div>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+</script>
