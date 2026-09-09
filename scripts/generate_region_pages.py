@@ -25,7 +25,7 @@ for region in sorted(counts):
 
     page_title = f"{full} 복지시설 찾기"
     title_h1 = f"{full} 복지시설 {cnt:,}곳"
-    subtitle = f"{full}의 사회복지관·장애인복지관·지역자활센터·노인일자리지원기관·가족센터를 검색하세요."
+    subtitle = f"{full}의 사회복지관·노인복지관·장애인복지관·지역자활센터·가족센터·수어통역센터를 검색하세요."
 
     content = f"""---
 layout: region
