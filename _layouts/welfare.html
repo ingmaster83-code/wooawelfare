@@ -53,11 +53,11 @@ layout: default
   <div class="camp-section trust-box">
     <h2>ℹ️ 이용 안내</h2>
     <p style="font-size:.9rem;color:#374151;line-height:1.8;">
-      {{ page.category }}은(는) 지역주민을 위한 상담·교육·재활·일자리 등 다양한 복지 프로그램을 제공하는 이용시설입니다.
+      {{ page.categoryEunNeun | default: page.category }} 지역주민을 위한 상담·교육·재활·일자리 등 다양한 복지 프로그램을 제공하는 이용시설입니다.
       이용 자격, 프로그램, 신청 방법은 시설마다 다를 수 있으니 방문 전 전화로 확인하세요.
     </p>
     <p style="font-size:.82rem;color:#7C2D12;margin-top:14px;">
-      보건복지부·한국사회보장정보원 사회복지시설정보서비스 기준입니다.
+      {{ page.source | default: "보건복지부·한국사회보장정보원 사회복지시설정보서비스 기준입니다." }}
     </p>
   </div>
 

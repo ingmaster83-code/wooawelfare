@@ -22,6 +22,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 ROOT = Path(__file__).parent.parent
 RAW = ROOT / "_rawdata" / "welfare_raw.json"
 FAMILY_RAW = ROOT / "_rawdata" / "family_raw.json"
+SAEIL_RAW = ROOT / "_rawdata" / "saeil_centers.json"
 GEO_CACHE = ROOT / "_rawdata" / "welfare_geo_cache.json"
 OUT = ROOT / "_rawdata" / "welfare.json"
 SEARCH_INDEX_OUT = ROOT / "search_index.json"
@@ -71,6 +72,24 @@ def guess_sido_sggu(jrsd: str):
             sggu = rest.split()[0] if rest else ""
             return short, sggu
     return "", ""
+
+
+def eun_neun(word: str) -> str:
+    if not word:
+        return "은"
+    last = word.strip()[-1]
+    if not ("가" <= last <= "힣"):
+        return "는"
+    return "은" if (ord(last) - ord("가")) % 28 != 0 else "는"
+
+
+# 카테고리별 실제 출처(테이블별로 API가 다름 — 템플릿에 하드코딩된 "보건복지부·사회복지시설정보서비스"가
+# 가족센터·새일센터에는 안 맞아서 이 필드로 분기)
+SOURCE_BY_CATEGORY = {
+    "가족센터": "여성가족부(성평등가족부) 가족센터 현황 기준입니다.",
+    "새일센터": "여성가족부(성평등가족부) e새일 새일센터정보 기준입니다.",
+}
+DEFAULT_SOURCE = "보건복지부·한국사회보장정보원 사회복지시설정보서비스 기준입니다."
 
 
 def make_slug(name: str, code: str) -> str:
@@ -168,6 +187,8 @@ def main():
             "sido_nm": sido_nm,
             "sggu_nm": sggu_nm,
             "slug": slug,
+            "categoryEunNeun": f"{category}{eun_neun(category)}",
+            "source": SOURCE_BY_CATEGORY.get(category, DEFAULT_SOURCE),
         })
 
     GEO_CACHE.write_text(json.dumps(geo_cache, ensure_ascii=False), encoding="utf-8")
@@ -200,9 +221,46 @@ def main():
                 "sido_nm": sido_nm,
                 "sggu_nm": sggu_nm,
                 "slug": slug,
+                "categoryEunNeun": f"가족센터{eun_neun('가족센터')}",
+                "source": SOURCE_BY_CATEGORY["가족센터"],
             })
             family_added += 1
         print(f"\n가족센터 {family_added}개 추가")
+
+    # 새일센터(여성가족부 e새일, scripts/fetch_saeil_data.py) — 자체 API가 위경도를 안 줘서
+    # fetch 단계에서 카카오 지오코딩까지 이미 끝낸 상태(x=경도, y=위도)로 넘어옴
+    saeil_added = 0
+    if SAEIL_RAW.exists():
+        saeil_raw = json.loads(SAEIL_RAW.read_text(encoding="utf-8"))
+        for d in saeil_raw:
+            name = (d.get("name") or "").strip()
+            sido_nm = (d.get("sido_nm") or "").strip()
+            sggu_nm = (d.get("sggu_nm") or "").strip()
+            if not name or not sido_nm or not sggu_nm:
+                skipped += 1
+                continue
+            slug = make_slug(name, d.get("id", ""))
+            seen_slugs[slug] += 1
+            if seen_slugs[slug] > 1:
+                slug = f"{slug}-{seen_slugs[slug]}"
+            items.append({
+                "welfareName": name,
+                "category": "새일센터",
+                "addr": (d.get("addr") or "").strip(),
+                "tel": (d.get("tel") or "").strip(),
+                "fax": "",
+                "corp": (d.get("headName") or "").strip(),
+                "estbDate": "",
+                "lat": str(d.get("y") or ""),
+                "lng": str(d.get("x") or ""),
+                "sido_nm": sido_nm,
+                "sggu_nm": sggu_nm,
+                "slug": slug,
+                "categoryEunNeun": f"새일센터{eun_neun('새일센터')}",
+                "source": SOURCE_BY_CATEGORY["새일센터"],
+            })
+            saeil_added += 1
+        print(f"\n새일센터 {saeil_added}개 추가")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(items, ensure_ascii=False), encoding="utf-8")
