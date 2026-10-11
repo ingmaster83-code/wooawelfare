@@ -12,6 +12,7 @@ process_data.py - welfare_raw.json(API 원본)을 Jekyll 페이지 생성용 JSO
 사용법:
   python scripts/process_data.py
 """
+import os
 import json, re, hashlib, sys, time
 from pathlib import Path
 from collections import Counter
@@ -27,7 +28,7 @@ GEO_CACHE = ROOT / "_rawdata" / "welfare_geo_cache.json"
 OUT = ROOT / "_rawdata" / "welfare.json"
 SEARCH_INDEX_OUT = ROOT / "search_index.json"
 
-KAKAO_REST_KEY = "02a25c9d9c8a834c12938e84a5235f6d"
+KAKAO_REST_KEY = os.environ.get("KAKAO_REST_KEY") or sys.exit("환경변수 KAKAO_REST_KEY 가 필요합니다(키를 코드에 넣지 마세요).")
 KAKAO_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 KAKAO_HEADERS = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"}
 
